@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXCopyFilesBuildPhase section */
-		03E2A25F2E68CB80003CC4FE /* CopyFiles */ = {
+		9E56011C2E70095700785C1E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -19,32 +19,37 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		03E2A2612E68CB80003CC4FE /* FInterpreter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FInterpreter; sourceTree = BUILT_PRODUCTS_DIR; };
-		03E2A26F2E68CC22003CC4FE /* FInterpreterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FInterpreterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E56011E2E70095700785C1E /* FInterpreterCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FInterpreterCLI; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E56013E2E700AAB00785C1E /* libFInterpreter.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libFInterpreter.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		03E2A2632E68CB80003CC4FE /* FInterpreter */ = {
+		03E2A2702E68CC22003CC4FE /* Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FInterpreter;
+			path = Tests;
 			sourceTree = "<group>";
 		};
-		03E2A2702E68CC22003CC4FE /* FInterpreterTests */ = {
+		9E56011F2E70095700785C1E /* FInterpreterCLI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FInterpreterTests;
+			path = FInterpreterCLI;
+			sourceTree = "<group>";
+		};
+		9E56013F2E700AAB00785C1E /* FInterpreter */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FInterpreter;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		03E2A25E2E68CB80003CC4FE /* Frameworks */ = {
+		9E56011B2E70095700785C1E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		03E2A26C2E68CC22003CC4FE /* Frameworks */ = {
+		9E56013C2E700AAB00785C1E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -57,8 +62,9 @@
 		03E2A2582E68CB80003CC4FE = {
 			isa = PBXGroup;
 			children = (
-				03E2A2632E68CB80003CC4FE /* FInterpreter */,
-				03E2A2702E68CC22003CC4FE /* FInterpreterTests */,
+				9E56011F2E70095700785C1E /* FInterpreterCLI */,
+				03E2A2702E68CC22003CC4FE /* Tests */,
+				9E56013F2E700AAB00785C1E /* FInterpreter */,
 				03E2A2622E68CB80003CC4FE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,58 +72,68 @@
 		03E2A2622E68CB80003CC4FE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				03E2A2612E68CB80003CC4FE /* FInterpreter */,
-				03E2A26F2E68CC22003CC4FE /* FInterpreterTests.xctest */,
+				9E56011E2E70095700785C1E /* FInterpreterCLI */,
+				9E56013E2E700AAB00785C1E /* libFInterpreter.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		9E56013A2E700AAB00785C1E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		03E2A2602E68CB80003CC4FE /* FInterpreter */ = {
+		9E56011D2E70095700785C1E /* FInterpreterCLI */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 03E2A2682E68CB80003CC4FE /* Build configuration list for PBXNativeTarget "FInterpreter" */;
+			buildConfigurationList = 9E5601222E70095700785C1E /* Build configuration list for PBXNativeTarget "FInterpreterCLI" */;
 			buildPhases = (
-				03E2A25D2E68CB80003CC4FE /* Sources */,
-				03E2A25E2E68CB80003CC4FE /* Frameworks */,
-				03E2A25F2E68CB80003CC4FE /* CopyFiles */,
+				9E56011A2E70095700785C1E /* Sources */,
+				9E56011B2E70095700785C1E /* Frameworks */,
+				9E56011C2E70095700785C1E /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				03E2A2632E68CB80003CC4FE /* FInterpreter */,
+				9E56011F2E70095700785C1E /* FInterpreterCLI */,
+			);
+			name = FInterpreterCLI;
+			packageProductDependencies = (
+			);
+			productName = FInterpreterCLI;
+			productReference = 9E56011E2E70095700785C1E /* FInterpreterCLI */;
+			productType = "com.apple.product-type.tool";
+		};
+		9E56013D2E700AAB00785C1E /* FInterpreter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9E5601442E700AAB00785C1E /* Build configuration list for PBXNativeTarget "FInterpreter" */;
+			buildPhases = (
+				9E56013A2E700AAB00785C1E /* Headers */,
+				9E56013B2E700AAB00785C1E /* Sources */,
+				9E56013C2E700AAB00785C1E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9E56013F2E700AAB00785C1E /* FInterpreter */,
 			);
 			name = FInterpreter;
 			packageProductDependencies = (
 			);
 			productName = FInterpreter;
-			productReference = 03E2A2612E68CB80003CC4FE /* FInterpreter */;
-			productType = "com.apple.product-type.tool";
-		};
-		03E2A26E2E68CC22003CC4FE /* FInterpreterTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 03E2A2732E68CC22003CC4FE /* Build configuration list for PBXNativeTarget "FInterpreterTests" */;
-			buildPhases = (
-				03E2A26B2E68CC22003CC4FE /* Sources */,
-				03E2A26C2E68CC22003CC4FE /* Frameworks */,
-				03E2A26D2E68CC22003CC4FE /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				03E2A2702E68CC22003CC4FE /* FInterpreterTests */,
-			);
-			name = FInterpreterTests;
-			packageProductDependencies = (
-			);
-			productName = FInterpreterTests;
-			productReference = 03E2A26F2E68CC22003CC4FE /* FInterpreterTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
+			productReference = 9E56013E2E700AAB00785C1E /* libFInterpreter.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
 
@@ -129,11 +145,12 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					03E2A2602E68CB80003CC4FE = {
+					9E56011D2E70095700785C1E = {
 						CreatedOnToolsVersion = 16.4;
 					};
-					03E2A26E2E68CC22003CC4FE = {
+					9E56013D2E700AAB00785C1E = {
 						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
 					};
 				};
 			};
@@ -151,31 +168,21 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				03E2A2602E68CB80003CC4FE /* FInterpreter */,
-				03E2A26E2E68CC22003CC4FE /* FInterpreterTests */,
+				9E56011D2E70095700785C1E /* FInterpreterCLI */,
+				9E56013D2E700AAB00785C1E /* FInterpreter */,
 			);
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
-		03E2A26D2E68CC22003CC4FE /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
-		03E2A25D2E68CB80003CC4FE /* Sources */ = {
+		9E56011A2E70095700785C1E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		03E2A26B2E68CC22003CC4FE /* Sources */ = {
+		9E56013B2E700AAB00785C1E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -220,7 +227,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = YGD99UC787;
+				DEVELOPMENT_TEAM = 24JFUNH9ML;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -284,7 +291,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = YGD99UC787;
+				DEVELOPMENT_TEAM = 24JFUNH9ML;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -305,57 +312,54 @@
 			};
 			name = Release;
 		};
-		03E2A2692E68CB80003CC4FE /* Debug */ = {
+		9E5601232E70095700785C1E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		03E2A26A2E68CB80003CC4FE /* Release */ = {
+		9E5601242E70095700785C1E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = YES;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		03E2A2742E68CC22003CC4FE /* Debug */ = {
+		9E5601452E700AAB00785C1E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 24JFUNH9ML;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = CompilersConstruction.FInterpreterTests;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
-		03E2A2752E68CC22003CC4FE /* Release */ = {
+		9E5601462E700AAB00785C1E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 24JFUNH9ML;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = CompilersConstruction.FInterpreterTests;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -371,20 +375,20 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		03E2A2682E68CB80003CC4FE /* Build configuration list for PBXNativeTarget "FInterpreter" */ = {
+		9E5601222E70095700785C1E /* Build configuration list for PBXNativeTarget "FInterpreterCLI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				03E2A2692E68CB80003CC4FE /* Debug */,
-				03E2A26A2E68CB80003CC4FE /* Release */,
+				9E5601232E70095700785C1E /* Debug */,
+				9E5601242E70095700785C1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		03E2A2732E68CC22003CC4FE /* Build configuration list for PBXNativeTarget "FInterpreterTests" */ = {
+		9E5601442E700AAB00785C1E /* Build configuration list for PBXNativeTarget "FInterpreter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				03E2A2742E68CC22003CC4FE /* Debug */,
-				03E2A2752E68CC22003CC4FE /* Release */,
+				9E5601452E700AAB00785C1E /* Debug */,
+				9E5601462E700AAB00785C1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
