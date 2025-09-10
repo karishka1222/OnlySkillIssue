@@ -1,5 +1,3 @@
-import Foundation
-
 public enum Token {
     case number(Double)
     case boolean(Bool)
@@ -9,6 +7,23 @@ public enum Token {
     case quote
     case lparen
     case rparen
+    case unknown(String)
+}
+
+extension Token: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .number(let value): return "number(\(value))"
+        case .boolean(let value): return "boolean(\(value))"
+        case .null: return "null"
+        case .identifier(let name): return "identifier(\(name))"
+        case .keyword(let name): return "keyword(\(name))"
+        case .quote: return "quote"
+        case .lparen: return "lparen"
+        case .rparen: return "rparen"
+        case .unknown(let value): return "unknown(\(value))"
+        }
+    }
 }
 
 public class Lexer {
@@ -16,13 +31,14 @@ public class Lexer {
     private var position: String.Index
     
     private let keywords: Set<String> = [
-        "setq", "func", "lambda", "prog", "return",
-        "cond", "while", "break", "eval",
+        "quote", "setq", "func", "lambda", "prog", "cond",
+        "while", "return", "break",
         "plus", "minus", "times", "divide",
-        "less", "greater", "equal",
-        "and", "or", "xor", "not",
-        "isint", "isreal", "isatom", "islist", "isnull",
-        "true", "false", "null"
+        "head", "tail", "cons",
+        "equal", "nonequal", "less",
+        "lesseq", "greater", "greatereq",
+        "isint", "isreal", "isbool", "isnull", "isatom", "islist",
+        "and", "or", "xor", "not", "eval"
     ]
     
     public init(input: String) {
@@ -30,7 +46,7 @@ public class Lexer {
         self.position = input.startIndex
     }
     
-    public func tokenize() throws -> [Token] {
+    public func tokenize() -> [Token] {
         var tokens: [Token] = []
         
         while let char = peek() {
@@ -49,50 +65,23 @@ public class Lexer {
             case "'":
                 tokens.append(.quote)
                 advance()
-            case "+":
-                tokens.append(.keyword("plus"))
-                advance()
-            case "-":
-                if let next = peekNext(), next.isNumber {
-                    let numStr = readWhile { $0.isNumber || $0 == "." || $0 == "-" }
-                    if let num = Double(numStr) {
-                        tokens.append(.number(num))
-                    } else {
-                        throw LexerError.invalidNumber(numStr)
-                    }
-                } else {
-                    tokens.append(.keyword("minus"))
-                    advance()
-                }
-            case "*":
-                tokens.append(.keyword("times"))
-                advance()
-            case "/":
-                tokens.append(.keyword("divide"))
-                advance()
             default:
-                if char.isLetter {
-                    let word = readWhile { $0.isLetter }
-                    if word == "true" {
-                        tokens.append(.boolean(true))
-                    } else if word == "false" {
-                        tokens.append(.boolean(false))
-                    } else if word == "null" {
-                        tokens.append(.null)
-                    } else if keywords.contains(word) {
-                        tokens.append(.keyword(word))
-                    } else {
-                        tokens.append(.identifier(word))
-                    }
-                } else if char.isNumber {
-                    let numStr = readWhile { $0.isNumber || $0 == "." }
-                    if let num = Double(numStr) {
-                        tokens.append(.number(num))
-                    } else {
-                        throw LexerError.invalidNumber(numStr)
-                    }
+                let atom = readAtom()
+                
+                if atom == "true" {
+                    tokens.append(.boolean(true))
+                } else if atom == "false" {
+                    tokens.append(.boolean(false))
+                } else if atom == "null" {
+                    tokens.append(.null)
+                } else if keywords.contains(atom) {
+                    tokens.append(.keyword(atom))
+                } else if let num = Double(atom) {
+                    tokens.append(.number(num))
+                } else if atom.allSatisfy({ $0.isLetter }) {
+                    tokens.append(.identifier(atom))
                 } else {
-                    throw LexerError.unexpectedCharacter(char)
+                    tokens.append(.unknown(atom))
                 }
             }
         }
@@ -100,37 +89,24 @@ public class Lexer {
         return tokens
     }
     
-    private func peek() -> Character? {
-            position < input.endIndex ? input[position] : nil
+    private func readAtom() -> String {
+        var result = ""
+        while let c = peek(),
+              !c.isWhitespace,
+              c != "(",
+              c != ")",
+              c != "'" {
+            result.append(c)
+            advance()
         }
+        return result
+    }
+    
+    private func peek() -> Character? {
+        position < input.endIndex ? input[position] : nil
+    }
     
     private func advance() {
-            position = input.index(after: position)
-        }
-    
-    private func readWhile(_ condition: (Character) -> Bool) -> String {
-            var result = ""
-            while let c = peek(), condition(c) {
-                result.append(c)
-                advance()
-            }
-            return result
-        }
-    
-    private func peekNext() -> Character? {
-        let nextIndex = input.index(after: position)
-        return nextIndex < input.endIndex ? input[nextIndex] : nil
-    }
-}
-
-enum LexerError: Error, CustomStringConvertible {
-    case invalidNumber(String)
-    case unexpectedCharacter(Character)
-    
-    var description: String {
-        switch self {
-        case .invalidNumber(let s): return "Invalid number literal: \(s)"
-        case .unexpectedCharacter(let c): return "Unexpected character: \(c)"
-        }
+        position = input.index(after: position)
     }
 }
