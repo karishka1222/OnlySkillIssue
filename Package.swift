@@ -23,7 +23,10 @@ let package = Package(
             .executableTarget(
                 name: "FInterpreterCLI",
                 dependencies: ["FInterpreter"],
-                path: "Sources/FInterpreterCLI"
+                path: "Sources/FInterpreterCLI",
+                resources: [
+                    .process("Resources")
+                ]
             ),
             .testTarget(
                 name: "FInterpreterTests",
