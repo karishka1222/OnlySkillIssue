@@ -7,6 +7,7 @@ public enum Token {
     case quote
     case lparen
     case rparen
+    case newline
     case unknown(String)
 }
 
@@ -21,6 +22,7 @@ extension Token: CustomStringConvertible {
         case .quote: return "quote"
         case .lparen: return "lparen"
         case .rparen: return "rparen"
+        case .newline: return "newline"
         case .unknown(let value): return "unknown(\(value))"
         }
     }
@@ -50,6 +52,12 @@ public class Lexer {
         var tokens: [Token] = []
         
         while let char = peek() {
+            if char == "\n" {
+                tokens.append(.newline)
+                advance()
+                continue
+            }
+            
             if char.isWhitespace {
                 advance()
                 continue

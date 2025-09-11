@@ -31,15 +31,22 @@ func runFileTests() {
 
 func runConsoleTests() {
     print("=== Console Lexer Mode ===")
-    print("Type code and press Enter (Ctrl+D to exit).")
+    print("Type code (multi-line allowed). Type ':run' to tokenize, ':quit' to exit.")
+    
+    var buffer = ""
     
     while let line = readLine() {
-        if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            continue
+        if line == ":quit" {
+            break
+        } else if line == ":run" {
+            let lexer = Lexer(input: buffer + "\n")
+            let tokens = lexer.tokenize()
+            print("Tokens: \(tokens)\n")
+            buffer = ""
+        } else {
+            buffer.append(line)
+            buffer.append("\n")
         }
-        let lexer = Lexer(input: line)
-        let tokens = lexer.tokenize()
-        print("Tokens: \(tokens)")
     }
     
     print("=== End of Console Mode ===")
