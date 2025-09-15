@@ -9,16 +9,24 @@ func runFileTests() {
     
     do {
         let content = try String(contentsOf: fileURL, encoding: .utf8)
-        let lines = content
-            .split(separator: "\n")
-            .map { String($0).trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+        
+        let rawBlocks = content
+            .components(separatedBy: "\n\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        
+        let blocks = rawBlocks.map { block in
+            block
+                .split(separator: "\n")
+                .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("#") }
+                .joined(separator: "\n")
+        }.filter { !$0.isEmpty }
         
         print("=== Running FInterpreter Lexer Tests from file ===\n")
         
-        for (index, line) in lines.enumerated() {
-            print("Test \(index + 1): \(line)")
-            let lexer = Lexer(input: line)
+        for (index, block) in blocks.enumerated() {
+            print("Test Block \(index + 1):\n\(block)\n")
+            let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
             print("Tokens: \(tokens)\n")
         }

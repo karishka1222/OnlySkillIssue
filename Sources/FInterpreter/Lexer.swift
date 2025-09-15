@@ -1,10 +1,10 @@
 public enum Token {
-    case number(Double)
+    case integer(Int)
+    case real(Double)
     case boolean(Bool)
     case null
     case identifier(String)
     case keyword(String)
-    case quote
     case lparen
     case rparen
     case newline
@@ -14,12 +14,12 @@ public enum Token {
 extension Token: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .number(let value): return "number(\(value))"
+        case .integer(let value): return "integer(\(value))"
+        case .real(let value): return "real(\(value))"
         case .boolean(let value): return "boolean(\(value))"
         case .null: return "null"
         case .identifier(let name): return "identifier(\(name))"
         case .keyword(let name): return "keyword(\(name))"
-        case .quote: return "quote"
         case .lparen: return "lparen"
         case .rparen: return "rparen"
         case .newline: return "newline"
@@ -71,7 +71,7 @@ public class Lexer {
                 tokens.append(.rparen)
                 advance()
             case "'":
-                tokens.append(.quote)
+                tokens.append(.keyword("quote"))
                 advance()
             default:
                 let atom = readAtom()
@@ -84,8 +84,10 @@ public class Lexer {
                     tokens.append(.null)
                 } else if keywords.contains(atom) {
                     tokens.append(.keyword(atom))
-                } else if let num = Double(atom) {
-                    tokens.append(.number(num))
+                } else if let intVal = Int(atom) {
+                    tokens.append(.integer(intVal))
+                } else if let realVal = Double(atom) {
+                    tokens.append(.real(realVal))
                 } else if atom.allSatisfy({ $0.isLetter }) {
                     tokens.append(.identifier(atom))
                 } else {
