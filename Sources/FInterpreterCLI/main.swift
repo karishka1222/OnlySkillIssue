@@ -28,7 +28,18 @@ func runFileTests() {
             print("Test Block \(index + 1):\n\(block)\n")
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
-            print("Tokens: \(tokens)\n")
+            // print("Tokens: \(tokens)\n")
+            // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
+            let parser = Parser(tokens: tokens, lenient: true)
+            do {
+                let program = try parser.parseProgram()
+                print("AST:")
+                for el in program { print("  \(el)") }
+                print("\n")
+            } catch {
+                print("Parse error: \(error)")
+                print("\n")
+            }
         }
         
         print("=== End of File Tests ===")
@@ -49,7 +60,18 @@ func runConsoleTests() {
         } else if line == ":run" {
             let lexer = Lexer(input: buffer + "\n")
             let tokens = lexer.tokenize()
-            print("Tokens: \(tokens)\n")
+            // print("Tokens: \(tokens)\n")
+            // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
+            let parser = Parser(tokens: tokens, lenient: true)
+            do {
+                let program = try parser.parseProgram()
+                print("AST:")
+                for el in program { print("  \(el)") }
+                print("\n")
+            } catch {
+                print("Parse error: \(error)")
+                print("\n")
+            }
             buffer = ""
         } else {
             buffer.append(line)

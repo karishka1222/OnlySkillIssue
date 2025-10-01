@@ -5,6 +5,7 @@ public enum Token {
     case null
     case identifier(String)
     case keyword(String)
+    case quote
     case lparen
     case rparen
     case newline
@@ -20,6 +21,7 @@ extension Token: CustomStringConvertible {
         case .null: return "null"
         case .identifier(let name): return "identifier(\(name))"
         case .keyword(let name): return "keyword(\(name))"
+        case .quote: return "quote"
         case .lparen: return "lparen"
         case .rparen: return "rparen"
         case .newline: return "newline"
@@ -71,7 +73,7 @@ public class Lexer {
                 tokens.append(.rparen)
                 advance()
             case "'":
-                tokens.append(.keyword("quote"))
+                tokens.append(.quote)
                 advance()
             default:
                 let atom = readAtom()
