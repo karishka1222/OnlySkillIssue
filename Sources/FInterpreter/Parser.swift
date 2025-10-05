@@ -21,6 +21,31 @@ public indirect enum Element: CustomStringConvertible {
             return "(\(inner))"
         }
     }
+    
+    public func prettyDescription(_ indent: String = "", isLast: Bool = true) -> String {
+        let prefix = indent + (isLast ? "└── " : "├── ")
+
+        switch self {
+        case .atom(let s):
+            return "\(prefix)AtomNode(\"\(s)\")"
+        case .integer(let i):
+            return "\(prefix)LiteralNode(\(i))"
+        case .real(let r):
+            return "\(prefix)LiteralNode(\(r))"
+        case .boolean(let b):
+            return "\(prefix)LiteralNode(\(b))"
+        case .null:
+            return "\(prefix)LiteralNode(null)"
+        case .list(let elems):
+            var result = "\(prefix)ListNode"
+            for (index, child) in elems.enumerated() {
+                let isLastChild = index == elems.count - 1
+                let childIndent = indent + (isLast ? "    " : "│   ")
+                result += "\n" + child.prettyDescription(childIndent, isLast: isLastChild)
+            }
+            return result
+        }
+    }
 }
 
 public enum ParserError: Error, CustomStringConvertible {

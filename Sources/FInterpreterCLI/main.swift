@@ -30,11 +30,13 @@ func runFileTests() {
             let tokens = lexer.tokenize()
             // print("Tokens: \(tokens)\n")
             // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
-            let parser = Parser(tokens: tokens, lenient: true)
+            let parser = Parser(tokens: tokens, lenient: false)
             do {
                 let program = try parser.parseProgram()
                 print("AST:")
-                for el in program { print("  \(el)") }
+                for el in program {
+                    print(el.prettyDescription())
+                }
                 print("\n")
             } catch {
                 print("Parse error: \(error)")
@@ -62,7 +64,7 @@ func runConsoleTests() {
             let tokens = lexer.tokenize()
             // print("Tokens: \(tokens)\n")
             // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
-            let parser = Parser(tokens: tokens, lenient: true)
+            let parser = Parser(tokens: tokens, lenient: false)
             do {
                 let program = try parser.parseProgram()
                 print("AST:")

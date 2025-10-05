@@ -90,7 +90,7 @@ public class Lexer {
                     tokens.append(.integer(intVal))
                 } else if let realVal = Double(atom) {
                     tokens.append(.real(realVal))
-                } else if atom.allSatisfy({ $0.isLetter }) {
+                } else if atom.first?.isLetter == true && atom.dropFirst().allSatisfy({ $0.isLetter || $0.isNumber }) {
                     tokens.append(.identifier(atom))
                 } else {
                     tokens.append(.unknown(atom))
