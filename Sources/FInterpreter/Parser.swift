@@ -91,7 +91,23 @@ public final class Parser {
                 elements.append(.atom(s))
                 continue
             }
-            elements.append(try parseElement())
+            do {
+                let element = try parseElement()
+                elements.append(element)
+            } catch let error as ParserError {
+                // Выводим ошибку, но не прерываем парсер
+                let line = currentLineNumber()
+                print("⚠️ Syntax error at line \(line): \(error)")
+
+                // Пропускаем токен, чтобы не зациклиться
+                _ = advance()
+                continue
+            } catch {
+                let line = currentLineNumber()
+                print("⚠️ Unknown error at line \(line): \(error)")
+                _ = advance()
+                continue
+            }
         }
         return elements
     }
@@ -167,5 +183,13 @@ public final class Parser {
     private func advance() -> Token? {
         guard pos < tokens.count else { return nil }
         let t = tokens[pos]; pos += 1; return t
+    }
+    
+    private func currentLineNumber() -> Int {
+        let newlines = tokens.prefix(pos).filter {
+            if case .newline = $0 { return true }
+            return false
+        }.count
+        return newlines + 1
     }
 }
