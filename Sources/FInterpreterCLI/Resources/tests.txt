@@ -6,13 +6,15 @@
 true
 null
 (setq x 5) x
+(setq x 5)) x
 
 # 2. Quote and lists
 'x
 (setq t '(plus minus times divide)) t
 
 # 3. Arithmetic
-(plus 1 2)
+(plus 1 2))
+(pluss 1 2)
 (minus 5 2)
 (times 3 4)
 (divide 3 2)
