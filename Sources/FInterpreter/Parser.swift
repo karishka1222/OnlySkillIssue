@@ -84,9 +84,9 @@ public final class Parser {
             if case .newline = t {
                 advance(); continue
             }
-            // В lenient режиме можно пропускать unknown (или трактовать их как atom)
+            // В lenient режиме можно пропускать unknown
             if case .unknown(let s) = t, lenient {
-                // конвертим unknown в атом и продолжаем (можно также просто advance() чтобы игнорировать)
+                // конвертим unknown в атом и продолжаем
                 _ = advance()
                 elements.append(.atom(s))
                 continue
@@ -111,7 +111,7 @@ public final class Parser {
         case .identifier(let name):
             advance(); return .atom(name)
         case .keyword(let name):
-            // любая ключевое слово в позиции элемента просто атом (например plus, isint, cond и т.д.)
+            // любое ключевое слово в позиции элемента просто атом
             advance(); return .atom(name)
         case .quote:
             // короткая форма: 'Element  ->  (quote Element)
@@ -121,7 +121,7 @@ public final class Parser {
             let quoted = try parseElement()
             return .list([.atom("quote"), quoted])
         case .lparen:
-            advance() // consume '('
+            advance() // считать '('
             var elems: [Element] = []
             while true {
                 guard let t = peek() else { throw ParserError.missingRParen }
@@ -131,9 +131,9 @@ public final class Parser {
                 if case .newline = t {
                     advance(); continue
                 }
-                // unknown inside list
+                // unknown внутри списка
                 if case .unknown(let s) = t, lenient {
-                    // либо превратить в atom, либо пропустить; я выбираю atom для видимости
+                    // либо превратить в atom, либо пропустить
                     _ = advance()
                     elems.append(.atom(s))
                     continue
