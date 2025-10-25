@@ -22,25 +22,36 @@ func runFileTests() {
                 .joined(separator: "\n")
         }.filter { !$0.isEmpty }
         
-        print("=== Running FInterpreter Lexer Tests from file ===\n")
+        print("=== Running FInterpreter Tests from file ===\n")
         
         for (index, block) in blocks.enumerated() {
             print("Test Block \(index + 1):\n\(block)\n")
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
-            // print("Tokens: \(tokens)\n")
-            // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
+            
             let parser = Parser(tokens: tokens, lenient: false)
             do {
-                let program = try parser.parseProgram()
+                let program = try parser.parseProgram() // [Node]
                 print("AST:")
-                for el in program {
-                    print(el.prettyDescription())
+                for node in program {
+                    print("  \(node.element.prettyDescription())") // Node has description including line
                 }
-                print("\n")
+                
+                print("\n🔍 Running semantic analysis...\n")
+                let analyzer = SemanticAnalyzer(ast: program)
+                let errors = analyzer.analyze()
+                
+                if errors.isEmpty {
+                    print("✅ No semantic errors found.\n")
+                } else {
+                    for err in errors {
+                        print("\(err)")
+                    }
+                    print("")
+                }
             } catch {
-                print("Parse error: \(error)")
-                print("\n")
+                print("❌ Parse error: \(error)\n")
+                continue // продолжаем тестирование следующих блоков
             }
         }
         
@@ -51,8 +62,8 @@ func runFileTests() {
 }
 
 func runConsoleTests() {
-    print("=== Console Lexer Mode ===")
-    print("Type code (multi-line allowed). Type ':run' to tokenize, ':quit' to exit.")
+    print("=== Console Mode ===")
+    print("Type code (multi-line allowed). Type ':run' to parse, ':quit' to exit.")
     
     var buffer = ""
     
@@ -62,17 +73,27 @@ func runConsoleTests() {
         } else if line == ":run" {
             let lexer = Lexer(input: buffer + "\n")
             let tokens = lexer.tokenize()
-            // print("Tokens: \(tokens)\n")
-            // для тестового раннера удобно lenient = true, чтобы не падать из-за одного битого токена
+            
             let parser = Parser(tokens: tokens, lenient: false)
             do {
                 let program = try parser.parseProgram()
                 print("AST:")
-                for el in program { print("  \(el)") }
-                print("\n")
+                for node in program { print("  \(node)") }
+                
+                print("\n🔍 Running semantic analysis...\n")
+                let analyzer = SemanticAnalyzer(ast: program)
+                let errors = analyzer.analyze()
+                
+                if errors.isEmpty {
+                    print("✅ No semantic errors found.\n")
+                } else {
+                    for err in errors {
+                        print("❌ \(err)")
+                    }
+                    print("")
+                }
             } catch {
-                print("Parse error: \(error)")
-                print("\n")
+                print("❌ Parse error: \(error)\n")
             }
             buffer = ""
         } else {

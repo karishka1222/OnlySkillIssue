@@ -1,5 +1,15 @@
 import Foundation
 
+// MARK: - Node wrapper (Element + line number)
+public struct Node: CustomStringConvertible {
+    public let element: Element
+    public let line: Int
+
+    public var description: String {
+        "\(element) [line \(line)]"
+    }
+}
+
 // AST: Element
 public indirect enum Element: CustomStringConvertible {
     case atom(String)
@@ -77,29 +87,24 @@ public final class Parser {
         self.lenient = lenient
     }
     
-    public func parseProgram() throws -> [Element] {
-        var elements: [Element] = []
+    public func parseProgram() throws -> [Node] {
+        var nodes: [Node] = []
         while let t = peek() {
-            // пропускаем пустые строки
             if case .newline = t {
                 advance(); continue
             }
-            // В lenient режиме можно пропускать unknown
             if case .unknown(let s) = t, lenient {
-                // конвертим unknown в атом и продолжаем
                 _ = advance()
-                elements.append(.atom(s))
+                let line = currentLineNumber()
+                nodes.append(Node(element: .atom(s), line: line))
                 continue
             }
             do {
-                let element = try parseElement()
-                elements.append(element)
+                let node = try parseElement()
+                nodes.append(node)
             } catch let error as ParserError {
-                // Выводим ошибку, но не прерываем парсер
                 let line = currentLineNumber()
                 print("⚠️ Syntax error at line \(line): \(error)")
-
-                // Пропускаем токен, чтобы не зациклиться
                 _ = advance()
                 continue
             } catch {
@@ -109,35 +114,33 @@ public final class Parser {
                 continue
             }
         }
-        return elements
+        return nodes
     }
     
-    public func parseElement() throws -> Element {
+    public func parseElement() throws -> Node {
+        let line = currentLineNumber() // запоминаем строку, где встретили элемент
         guard let token = peek() else { throw ParserError.unexpectedEOF }
-        
+
         switch token {
         case .integer(let v):
-            advance(); return .integer(v)
+            advance(); return Node(element: .integer(v), line: line)
         case .real(let r):
-            advance(); return .real(r)
+            advance(); return Node(element: .real(r), line: line)
         case .boolean(let b):
-            advance(); return .boolean(b)
+            advance(); return Node(element: .boolean(b), line: line)
         case .null:
-            advance(); return .null
+            advance(); return Node(element: .null, line: line)
         case .identifier(let name):
-            advance(); return .atom(name)
+            advance(); return Node(element: .atom(name), line: line)
         case .keyword(let name):
-            // любое ключевое слово в позиции элемента просто атом
-            advance(); return .atom(name)
+            advance(); return Node(element: .atom(name), line: line)
         case .quote:
-            // короткая форма: 'Element  ->  (quote Element)
             advance()
-            // за апострофом обязательно должен идти Element
             guard peek() != nil else { throw ParserError.unexpectedEOF }
             let quoted = try parseElement()
-            return .list([.atom("quote"), quoted])
+            return Node(element: .list([.atom("quote"), quoted.element]), line: line)
         case .lparen:
-            advance() // считать '('
+            advance()
             var elems: [Element] = []
             while true {
                 guard let t = peek() else { throw ParserError.missingRParen }
@@ -147,28 +150,24 @@ public final class Parser {
                 if case .newline = t {
                     advance(); continue
                 }
-                // unknown внутри списка
                 if case .unknown(let s) = t, lenient {
-                    // либо превратить в atom, либо пропустить
                     _ = advance()
                     elems.append(.atom(s))
                     continue
                 }
                 let child = try parseElement()
-                elems.append(child)
+                elems.append(child.element)
             }
-            return .list(elems)
+            return Node(element: .list(elems), line: line)
         case .rparen:
-            // лишняя закрывающая скобка
             throw ParserError.unexpectedToken(")")
         case .newline:
             advance()
             return try parseElement()
         case .unknown(let s):
-            // В строгом режиме — ошибка
             if lenient {
                 _ = advance()
-                return .atom(s)
+                return Node(element: .atom(s), line: line)
             } else {
                 throw ParserError.unexpectedToken(s)
             }
