@@ -74,11 +74,23 @@ public enum ParserError: Error, CustomStringConvertible {
     }
 }
 
+public struct ParserErrorRecord: CustomStringConvertible {
+    public let line: Int
+    public let message: String
+
+    public var description: String {
+        "Line \(line): \(message)"
+    }
+}
+
 public final class Parser {
     private let tokens: [Token]
     private var pos: Int = 0
     private let lenient: Bool
-    
+
+    /// Collected errors during parsing (non-fatal). Public for inspection after parsing.
+    public private(set) var errors: [ParserErrorRecord] = []
+
     /// - parameters:
     ///   - tokens: список токенов от Lexer
     ///   - lenient: если true — unknown-токены не будут падать, а будут превращены в Atom (удобно для batch-тестов)
@@ -86,9 +98,13 @@ public final class Parser {
         self.tokens = tokens
         self.lenient = lenient
     }
-    
-    public func parseProgram() throws -> [Node] {
+
+    public func parseProgram() -> [Node] {
         var nodes: [Node] = []
+        // Сбрасываем предыдущие ошибки и позицию (если кто-то переиспользует парсер)
+        errors = []
+        pos = 0
+
         while let t = peek() {
             if case .newline = t {
                 advance(); continue
@@ -99,24 +115,26 @@ public final class Parser {
                 nodes.append(Node(element: .atom(s), line: line))
                 continue
             }
+
             do {
                 let node = try parseElement()
                 nodes.append(node)
-            } catch let error as ParserError {
+            } catch let pErr as ParserError {
                 let line = currentLineNumber()
-                print("⚠️ Syntax error at line \(line): \(error)")
-                _ = advance()
+                recordError(line: line, message: pErr.description)
+                // Попробуем восстановиться и продолжить разбор:
+                recover()
                 continue
             } catch {
                 let line = currentLineNumber()
-                print("⚠️ Unknown error at line \(line): \(error)")
-                _ = advance()
+                recordError(line: line, message: "Unknown error: \(error)")
+                recover()
                 continue
             }
         }
         return nodes
     }
-    
+
     public func parseElement() throws -> Node {
         let line = currentLineNumber() // запоминаем строку, где встретили элемент
         guard let token = peek() else { throw ParserError.unexpectedEOF }
@@ -135,6 +153,7 @@ public final class Parser {
         case .keyword(let name):
             advance(); return Node(element: .atom(name), line: line)
         case .quote:
+            // 'x  -> (quote x)
             advance()
             guard peek() != nil else { throw ParserError.unexpectedEOF }
             let quoted = try parseElement()
@@ -142,8 +161,12 @@ public final class Parser {
         case .lparen:
             advance()
             var elems: [Element] = []
+            // parse elements until matching rparen
             while true {
-                guard let t = peek() else { throw ParserError.missingRParen }
+                guard let t = peek() else {
+                    // EOF inside list -> report missing rparen
+                    throw ParserError.missingRParen
+                }
                 if case .rparen = t {
                     advance(); break
                 }
@@ -173,8 +196,9 @@ public final class Parser {
             }
         }
     }
-    
-    // MARK: helpers
+
+    // MARK: - helpers
+
     private func peek() -> Token? {
         pos < tokens.count ? tokens[pos] : nil
     }
@@ -183,12 +207,57 @@ public final class Parser {
         guard pos < tokens.count else { return nil }
         let t = tokens[pos]; pos += 1; return t
     }
-    
+
     private func currentLineNumber() -> Int {
         let newlines = tokens.prefix(pos).filter {
             if case .newline = $0 { return true }
             return false
         }.count
         return newlines + 1
+    }
+
+    private func recordError(line: Int, message: String) {
+        let rec = ParserErrorRecord(line: line, message: message)
+        errors.append(rec)
+    }
+
+    /// Попытка безопасно восстановиться после ошибки:
+    /// пробегаем токены, пока не встретим:
+    /// - newline (тогда считаем, что следующая строка — безопасное место)
+    /// - rparen (закрывающая скобка — возможно конец текущего выражения)
+    /// В любом случае, чтобы не зациклиться, если ничего не найдено — сдвигаемся на один токен.
+    private func recover() {
+        // Если уже в конце, ничего делать не нужно
+        if peek() == nil { return }
+
+        // Попробуем найти ближайшую "точку синхронизации"
+        var progressed = false
+        while let t = peek() {
+            switch t {
+            case .newline:
+                // пропускаем саму newline и считаем, что позиция после неё безопасна
+                _ = advance()
+                progressed = true
+                return
+            case .rparen:
+                // пропускаем rparen чтобы выйти из неправильной вложенности
+                _ = advance()
+                progressed = true
+                return
+            case .lparen:
+                // если встретили новую lparen — остановимся, т.к. внутри неё может быть корректное выражение
+                return
+            default:
+                // просто пропускаем токен и продолжаем поиск
+                _ = advance()
+                progressed = true
+                continue
+            }
+        }
+
+        // Если мы ничего не продвинули (маловероятно), сдвинемся на один токен, чтобы избежать бесконечного цикла
+        if !progressed {
+            _ = advance()
+        }
     }
 }

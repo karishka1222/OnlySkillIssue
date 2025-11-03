@@ -26,32 +26,44 @@ func runFileTests() {
         
         for (index, block) in blocks.enumerated() {
             print("Test Block \(index + 1):\n\(block)\n")
+            
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
-            
             let parser = Parser(tokens: tokens, lenient: false)
-            do {
-                let program = try parser.parseProgram() // [Node]
-                print("AST:")
-                for node in program {
-                    print("  \(node.element.prettyDescription())") // Node has description including line
+            
+            let program = parser.parseProgram()
+            
+            // 🔸 Выводим синтаксические ошибки, если есть
+            if !parser.errors.isEmpty {
+                print("⚠️ Found \(parser.errors.count) syntax errors:")
+                for err in parser.errors {
+                    print("  \(err)")
                 }
-                
-                print("\n🔍 Running semantic analysis...\n")
-                let analyzer = SemanticAnalyzer(ast: program)
-                let errors = analyzer.analyze()
-                
-                if errors.isEmpty {
-                    print("✅ No semantic errors found.\n")
-                } else {
-                    for err in errors {
-                        print("\(err)")
-                    }
-                    print("")
+                print("")
+            }
+            
+            // 🔸 Если AST пуст — пропускаем семантический анализ
+            guard !program.isEmpty else {
+                print("❌ No valid AST nodes parsed, skipping semantic analysis.\n")
+                continue
+            }
+            
+            print("AST:")
+            for node in program {
+                print(node.element.prettyDescription())
+            }
+            
+            print("\n🔍 Running semantic analysis...\n")
+            let analyzer = SemanticAnalyzer(ast: program)
+            let errors = analyzer.analyze()
+            
+            if errors.isEmpty {
+                print("✅ No semantic errors found.\n")
+            } else {
+                for err in errors {
+                    print("❌ \(err)")
                 }
-            } catch {
-                print("❌ Parse error: \(error)\n")
-                continue // продолжаем тестирование следующих блоков
+                print("")
             }
         }
         
@@ -60,6 +72,7 @@ func runFileTests() {
         print("❌ Could not read tests.txt: \(error)")
     }
 }
+
 
 func runConsoleTests() {
     print("=== Console Mode ===")
@@ -73,12 +86,26 @@ func runConsoleTests() {
         } else if line == ":run" {
             let lexer = Lexer(input: buffer + "\n")
             let tokens = lexer.tokenize()
-            
             let parser = Parser(tokens: tokens, lenient: false)
-            do {
-                let program = try parser.parseProgram()
+            
+            let program = parser.parseProgram()
+            
+            // 🔸 Выводим синтаксические ошибки
+            if !parser.errors.isEmpty {
+                print("⚠️ Found \(parser.errors.count) syntax errors:")
+                for err in parser.errors {
+                    print("  \(err)")
+                }
+                print("")
+            }
+            
+            if program.isEmpty {
+                print("❌ No valid AST nodes parsed.\n")
+            } else {
                 print("AST:")
-                for node in program { print("  \(node)") }
+                for node in program {
+                    print(node.element.prettyDescription())
+                }
                 
                 print("\n🔍 Running semantic analysis...\n")
                 let analyzer = SemanticAnalyzer(ast: program)
@@ -92,9 +119,8 @@ func runConsoleTests() {
                     }
                     print("")
                 }
-            } catch {
-                print("❌ Parse error: \(error)\n")
             }
+            
             buffer = ""
         } else {
             buffer.append(line)
@@ -105,6 +131,7 @@ func runConsoleTests() {
     print("=== End of Console Mode ===")
 }
 
+// Entry point
 print("Choose mode: type 'txt' for file tests or 'console' for interactive mode.")
 if let choice = readLine()?.lowercased() {
     switch choice {
