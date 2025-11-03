@@ -60,8 +60,9 @@ func runFileTests() {
             if errors.isEmpty {
                 print("✅ No semantic errors found.\n")
             } else {
+                print("⚠️ Found \(errors.count) semantic errors:")
                 for err in errors {
-                    print("❌ \(err)")
+                    print("  \(err)")
                 }
                 print("")
             }
@@ -114,8 +115,9 @@ func runConsoleTests() {
                 if errors.isEmpty {
                     print("✅ No semantic errors found.\n")
                 } else {
+                    print("⚠️ Found \(errors.count) semantic errors:")
                     for err in errors {
-                        print("❌ \(err)")
+                        print("  \(err)")
                     }
                     print("")
                 }

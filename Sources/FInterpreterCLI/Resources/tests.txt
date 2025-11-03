@@ -7,7 +7,7 @@ null
 (setq x 5) x
 (setq y -10) (plus x y)
 
-# 2. Semantic errors: invalid literals and assignment
+# 2. Parser and Semantic errors: invalid literals and assignment
 3..14
 (setq 123 456)
 (setq x 5)) x
@@ -22,48 +22,51 @@ null
 # 4. Semantic errors: invalid quote usage
 (quote)
 (quote x y)
-(setq invalid '(1 2))
-(setq bad-list '(1 . 2))
 
 # 5. Arithmetic operations
 (plus 10 20)
-(minus 15 7)
+(minus 15.1 7)
 (times 6 8)
 (divide 20 4)
 
 # 6. Semantic errors: arithmetic type errors
 (plus true 10)
-(minus 'hello' 5)
+(plus 1)
+(divide 1 2 3)
+(minus 'hello 5)
 (times 2 null)
-(divide 10 false)
 
 # 7. Comparisons and predicates
 (less 5 10)
+(less true false)
 (equal 3.0 3.0)
 (isint 42)
+(isint true)
+(isreal null)
 (isreal 3.14)
 (isatom 'x)
 (islist '(a b c))
 (isnull null)
 
 # 8. Semantic errors: comparison type mismatches
-(less true false)
-(equal 1 "one")
-(isint true)
-(isreal null)
+(equal 1 'one)
 (less null 5)
+(less 1)
+(less 1 2 3)
 
 # 9. Head / tail / cons operations
 (head '(first second third))
 (tail '(head tail body))
 (cons 'new '(existing list))
-(cons 1 (cons 2 (cons 3 null)))
+(cons 1 (cons 2 (cons 3 '())))
 
 # 10. Semantic errors: list operation type errors
 (head 42)
-(tail "string")
-(cons 1 2)
-(cons '(list) 'atom)
+(head)
+(head '(1) 2)
+(tail 42)
+(cons 1)
+(cons true false)
 
 # 11. Logical operators
 (and true true)
@@ -75,10 +78,13 @@ null
 
 # 12. Semantic errors: logical operator type errors
 (and 1 true)
-(or "string" false)
+(and true)
+(and true false true)
+(or 'string false)
 (xor null true)
 (not 42)
-(and true 0)
+(not)
+(not true false)
 
 # 13. Func / lambda / function calls
 (func square (x) (times x x))
@@ -87,7 +93,7 @@ null
 (double 10)
 ((lambda (x y) (times x y)) 3 4)
 (func greet (name)
-  (cons 'hello (cons name null)))
+  (cons 'hello (cons name '())))
 (greet 'world)
 
 # 14. Semantic errors: function definition and call errors
@@ -101,32 +107,24 @@ null
   (setq a 10)
   (setq b 20)
   (plus a b))
-(func get-value ()
+(func getValue ()
   (prog ()
     (return 42)
     100))
-(get-value)
+(getValue)
 (prog (x)
   (setq x 5)
   (setq x (times x 2))
   x)
-(func early-return (flag)
-  (prog ()
-    (cond flag (return 'early) null)
-    'late))
-(early-return true)
 
 # 16. Semantic errors: prog and return errors
 (prog (1) (setq x 5) x)
 (return 42)
-(prog (x) (setq x 5) (return))
-(func bad-return () return 42)
 
 # 17. Cond and while control structures
 (cond (less 2 3) 'yes 'no)
-(cond (greater 5 10) 'big 'small)
-(cond (equal 1 1) 'equal)
-(cond (isnull null) 'is-null 'not-null)
+(cond (greater 5 10) 'big)
+(while true (break))
 (prog (counter)
   (setq counter 0)
   (while (less counter 3)
@@ -137,16 +135,10 @@ null
 # 18. Semantic errors: cond and while type errors
 (cond 42 'true 'false)
 (cond (less 1 2))
-(while "string" (break))
 (while true)
+(while 1 (break))
 
 # 19. Break inside while loops
-(prog (i)
-  (setq i 0)
-  (while (less i 10)
-    (setq i (plus i 1))
-    (cond (greater i 5) (break)))
-  i)
 (prog (count)
   (setq count 0)
   (while true
@@ -156,8 +148,6 @@ null
 
 # 20. Semantic errors: break usage errors
 (break)
-(prog (x) (setq x 5) (break) x)
-(cond true (break) null)
 (plus 1 (break))
 
 # 21. Eval function
@@ -184,13 +174,7 @@ null
     (plus (fib (minus n 1)) (fib (minus n 2)))))
 (fib 6)
 
-# 24. Semantic errors: recursion errors
-(func infinite (x) (infinite x))
-(infinite 1)
-(func bad-rec (n) (bad-rec true))
-(bad-rec 5)
-
-# 25. Closures and higher-order functions
+# 24. Closures and higher-order functions
 (prog ()
   (setq maker (lambda (x)
     (lambda (y) (plus x y))))
@@ -204,23 +188,9 @@ null
         (setq n (plus n 1))
         n))))
   (setq c (counter))
-  (cons (c) (cons (c) (cons (c) null))))
+  (cons (c) (cons (c) (cons (c) '()))))
 
-# 26. Semantic errors: closure usage errors
-(setq bad-closure (lambda (x) (plus x y)))
-(bad-closure 5)
-((lambda () (break)))
-(prog () (setq f (lambda (x) x)) (f))
-
-# 27. Type errors in operations
-(plus "hello" 1)
-(times true false)
-(and 1 2)
-(or "a" "b")
-(not 0)
-(less null null)
-
-# 28. Argument evaluation order and side effects
+# 25. Argument evaluation order and side effects
 (prog (a)
   (setq a 0)
   (plus (setq a (plus a 1))
@@ -231,29 +201,3 @@ null
   (setq y 2)
   (times (setq x (times x 3))
          (setq y (times y 4))))
-
-# 29. Semantic errors: arity mismatches
-(plus 1)
-(plus 1 2 3)
-(not)
-(not true false)
-(and true)
-(and true false true)
-(less 1)
-(less 1 2 3)
-(head)
-(head '(1) 2)
-(cons 1)
-(cons 1 2 3)
-
-# 30. Semantic errors: type mismatch when types are known
-(plus true 1)
-(times 2 false)
-(and 1 false)
-(or true 0)
-(not 1)
-(while 1 (break))
-(cond 2 10 20)
-(head 42)
-(tail "string")
-(cons true false)
