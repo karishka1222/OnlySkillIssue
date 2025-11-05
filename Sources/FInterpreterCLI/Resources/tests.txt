@@ -201,3 +201,21 @@ null
   (setq y 2)
   (times (setq x (times x 3))
          (setq y (times y 4))))
+
+# 26. AST Optimization — Constant Folding
+(plus 2 3)
+(times (plus 1 2) 4)
+(divide 10 2)
+(minus 10 3)
+(and true false)
+(or false true)
+(not false)
+(less 2 5)
+(equal 3 3)
+(greater (plus 2 3) (minus 10 6))
+
+# 27. AST Optimization — Remove Unused Variables
+(setq x 10)
+(setq y (plus 2 3))
+(plus y 1)
+(setq z 42)

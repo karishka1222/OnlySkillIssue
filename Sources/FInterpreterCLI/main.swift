@@ -1,7 +1,8 @@
 import Foundation
 import FInterpreter
 
-func runFileTests() {
+// MARK: - Run Tests from File
+func runFileTests(optimizeAST: Bool) {
     guard let fileURL = Bundle.module.url(forResource: "tests", withExtension: "txt") else {
         print("❌ Could not find tests.txt in resources.")
         return
@@ -23,17 +24,19 @@ func runFileTests() {
         }.filter { !$0.isEmpty }
         
         print("=== Running FInterpreter Tests from file ===\n")
+        print("🔧 AST optimization mode: \(optimizeAST ? "ON" : "OFF")\n")
         
         for (index, block) in blocks.enumerated() {
+            print("──────────────────────────────────────────────")
             print("Test Block \(index + 1):\n\(block)\n")
             
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
             let parser = Parser(tokens: tokens, lenient: false)
             
-            let program = parser.parseProgram()
+            var program = parser.parseProgram()
             
-            // 🔸 Выводим синтаксические ошибки, если есть
+            // ⚠️ Синтаксические ошибки
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
@@ -42,15 +45,26 @@ func runFileTests() {
                 print("")
             }
             
-            // 🔸 Если AST пуст — пропускаем семантический анализ
+            // ❌ Если AST пуст — пропускаем семантику
             guard !program.isEmpty else {
                 print("❌ No valid AST nodes parsed, skipping semantic analysis.\n")
                 continue
             }
             
-            print("AST:")
+            print("🔹 AST before optimization:")
             for node in program {
                 print(node.element.prettyDescription())
+            }
+            
+            // ✅ Оптимизация AST
+            if optimizeAST {
+                program = ASTOptimizer.optimizeProgram(program)
+                print("\n✅ AST after optimization:")
+                for node in program {
+                    print(node.element.prettyDescription())
+                }
+            } else {
+                print("\n⚙️ Optimization disabled.")
             }
             
             print("\n🔍 Running semantic analysis...\n")
@@ -75,9 +89,11 @@ func runFileTests() {
 }
 
 
-func runConsoleTests() {
+// MARK: - Console Mode
+func runConsoleTests(optimizeAST: Bool) {
     print("=== Console Mode ===")
-    print("Type code (multi-line allowed). Type ':run' to parse, ':quit' to exit.")
+    print("🔧 AST optimization mode: \(optimizeAST ? "ON" : "OFF")\n")
+    print("Type code (multi-line allowed). Type ':run' to parse, ':quit' to exit.\n")
     
     var buffer = ""
     
@@ -89,9 +105,9 @@ func runConsoleTests() {
             let tokens = lexer.tokenize()
             let parser = Parser(tokens: tokens, lenient: false)
             
-            let program = parser.parseProgram()
+            var program = parser.parseProgram()
             
-            // 🔸 Выводим синтаксические ошибки
+            // ⚠️ Синтаксические ошибки
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
@@ -103,9 +119,19 @@ func runConsoleTests() {
             if program.isEmpty {
                 print("❌ No valid AST nodes parsed.\n")
             } else {
-                print("AST:")
+                print("🔹 AST before optimization:")
                 for node in program {
                     print(node.element.prettyDescription())
+                }
+                
+                if optimizeAST {
+                    program = ASTOptimizer.optimizeProgram(program)
+                    print("\n✅ AST after optimization:")
+                    for node in program {
+                        print(node.element.prettyDescription())
+                    }
+                } else {
+                    print("\n⚙️ Optimization disabled.")
                 }
                 
                 print("\n🔍 Running semantic analysis...\n")
@@ -133,14 +159,19 @@ func runConsoleTests() {
     print("=== End of Console Mode ===")
 }
 
-// Entry point
-print("Choose mode: type 'txt' for file tests or 'console' for interactive mode.")
+
+// MARK: - Entry point
+print("Choose mode: 'txt' for file tests or 'console' for interactive mode.")
 if let choice = readLine()?.lowercased() {
+    print("Enable AST optimization? (yes/no)")
+    let optChoice = readLine()?.lowercased() ?? "no"
+    let optimize = (optChoice == "yes" || optChoice == "y")
+    
     switch choice {
     case "txt":
-        runFileTests()
+        runFileTests(optimizeAST: optimize)
     case "console":
-        runConsoleTests()
+        runConsoleTests(optimizeAST: optimize)
     default:
         print("❌ Unknown option. Please run again and choose either 'txt' or 'console'.")
     }
