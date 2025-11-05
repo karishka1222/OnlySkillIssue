@@ -203,10 +203,11 @@ null
          (setq y (times y 4))))
 
 # 26. AST Optimization — Constant Folding
-(plus 2 3)
 (times (plus 1 2) 4)
 (divide 10 2)
 (minus 10 3)
+(setq x (plus 2 3))
+(plus x 1)
 (and true false)
 (or false true)
 (not false)
