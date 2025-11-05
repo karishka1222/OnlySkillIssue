@@ -92,8 +92,8 @@ public final class Parser {
     public private(set) var errors: [ParserErrorRecord] = []
 
     /// - parameters:
-    ///   - tokens: список токенов от Lexer
-    ///   - lenient: если true — unknown-токены не будут падать, а будут превращены в Atom (удобно для batch-тестов)
+    ///   - tokens: list of tokens from the Lexer
+    ///   - lenient: if true — unknown tokens will not fail, but will be converted to Atom (useful for batch tests)
     public init(tokens: [Token], lenient: Bool = false) {
         self.tokens = tokens
         self.lenient = lenient
@@ -101,7 +101,7 @@ public final class Parser {
 
     public func parseProgram() -> [Node] {
         var nodes: [Node] = []
-        // Сбрасываем предыдущие ошибки и позицию (если кто-то переиспользует парсер)
+        // Reset previous errors and position (if parser is reused)
         errors = []
         pos = 0
 
@@ -122,7 +122,7 @@ public final class Parser {
             } catch let pErr as ParserError {
                 let line = currentLineNumber()
                 recordError(line: line, message: pErr.description)
-                // Попробуем восстановиться и продолжить разбор:
+                // Try to recover and continue parsing:
                 recover()
                 continue
             } catch {
@@ -136,7 +136,7 @@ public final class Parser {
     }
 
     public func parseElement() throws -> Node {
-        let line = currentLineNumber() // запоминаем строку, где встретили элемент
+        let line = currentLineNumber() // remember the line where the element was found
         guard let token = peek() else { throw ParserError.unexpectedEOF }
 
         switch token {
@@ -221,41 +221,41 @@ public final class Parser {
         errors.append(rec)
     }
 
-    /// Попытка безопасно восстановиться после ошибки:
-    /// пробегаем токены, пока не встретим:
-    /// - newline (тогда считаем, что следующая строка — безопасное место)
-    /// - rparen (закрывающая скобка — возможно конец текущего выражения)
-    /// В любом случае, чтобы не зациклиться, если ничего не найдено — сдвигаемся на один токен.
+    /// Attempt to safely recover after an error:
+    /// scan tokens until we find:
+    /// - newline (then the next line is considered a safe place)
+    /// - rparen (closing parenthesis — possibly the end of current expression)
+    /// In any case, to avoid infinite loop, if nothing is found — advance by one token.
     private func recover() {
-        // Если уже в конце, ничего делать не нужно
+        // If already at the end, do nothing
         if peek() == nil { return }
 
-        // Попробуем найти ближайшую "точку синхронизации"
+        // Try to find the nearest "synchronization point"
         var progressed = false
         while let t = peek() {
             switch t {
             case .newline:
-                // пропускаем саму newline и считаем, что позиция после неё безопасна
+                // skip the newline itself and consider position after it safe
                 _ = advance()
                 progressed = true
                 return
             case .rparen:
-                // пропускаем rparen чтобы выйти из неправильной вложенности
+                // skip rparen to exit incorrect nesting
                 _ = advance()
                 progressed = true
                 return
             case .lparen:
-                // если встретили новую lparen — остановимся, т.к. внутри неё может быть корректное выражение
+                // if we find a new lparen — stop, as it may contain a valid expression
                 return
             default:
-                // просто пропускаем токен и продолжаем поиск
+                // just skip the token and continue searching
                 _ = advance()
                 progressed = true
                 continue
             }
         }
 
-        // Если мы ничего не продвинули (маловероятно), сдвинемся на один токен, чтобы избежать бесконечного цикла
+        // If nothing was progressed (unlikely), advance by one token to avoid infinite loop
         if !progressed {
             _ = advance()
         }

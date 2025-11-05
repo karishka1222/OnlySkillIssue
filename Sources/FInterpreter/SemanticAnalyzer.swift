@@ -10,11 +10,11 @@ public struct SemanticError: Error, CustomStringConvertible {
 }
 
 public enum TypeKind: Equatable, CustomStringConvertible {
-    case number  // объединяет integer и real как в спецификации
+    case number  // combines integer and real as in specification
     case bool
     case any
     case null
-    case list    // добавим тип для списков
+    case list    // type for lists
 
     public var description: String {
         switch self {
@@ -27,9 +27,7 @@ public enum TypeKind: Equatable, CustomStringConvertible {
     }
 }
 
-// -----------------------------
-// SymbolTable
-// -----------------------------
+// MARK: - SymbolTable
 public final class SymbolTable {
     private var variables: [String: TypeKind] = [:]
     private var functions: [String: ([String], Element)] = [:]
@@ -78,9 +76,7 @@ public final class SymbolTable {
     }
 }
 
-// -----------------------------
-// Semantic Analyzer
-// -----------------------------
+// MARK: - SemanticAnalyzer
 public final class SemanticAnalyzer {
     private let ast: [Node]
     private var errors: [SemanticError] = []
@@ -97,7 +93,7 @@ public final class SemanticAnalyzer {
         return errors
     }
 
-    // MARK: - analyzeNode
+    // MARK: - Analyze Node
     private func analyzeNode(_ element: Element, in scope: SymbolTable, line: Int, inProg: Bool, inWhile: Bool, inFunc: Bool) {
         switch element {
         case .atom(let name):
@@ -106,7 +102,7 @@ public final class SemanticAnalyzer {
             }
 
         case .list(let elements):
-            // Защита от анализа содержимого quote
+            // Skip analysis for quote
             if let first = elements.first, case .atom(let head) = first, head == "quote" {
                 checkQuote(elements, line: line)
                 return
@@ -114,7 +110,7 @@ public final class SemanticAnalyzer {
 
             guard let first = elements.first else { return }
 
-            // ((lambda (...) body) args...) — анонимный вызов
+            // Anonymous lambda call ((lambda (...) body) args...)
             if case .list(let inner) = first,
                let innerFirst = inner.first,
                case .atom(let innerHead) = innerFirst,
@@ -147,17 +143,17 @@ public final class SemanticAnalyzer {
                     checkFunctionCall(elements, scope: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
                 }
             } else {
-                // Если первый элемент не атом, это может быть валидный список (например, результат вычисления)
+                // First element is not an atom, it may be a valid expression
                 for elem in elements {
                     analyzeNode(elem, in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
                 }
             }
         case .integer, .real, .boolean, .null:
-            break // литералы не требуют семантического анализа
+            break // literals do not require analysis
         }
     }
 
-    // MARK: - Builtin specs (исправлено согласно спецификации)
+    // MARK: - Builtin specifications
     private struct BuiltinSpec {
         let arity: Int
         let expectedArgTypes: [TypeKind]?
@@ -165,32 +161,32 @@ public final class SemanticAnalyzer {
     }
 
     private let builtinSpecs: [String: BuiltinSpec] = [
-        // Арифметические функции (2 аргумента, number, возвращают number)
+        // Arithmetic functions
         "plus":   BuiltinSpec(arity: 2, expectedArgTypes: [.number, .number], returnType: .number),
         "minus":  BuiltinSpec(arity: 2, expectedArgTypes: [.number, .number], returnType: .number),
         "times":  BuiltinSpec(arity: 2, expectedArgTypes: [.number, .number], returnType: .number),
         "divide": BuiltinSpec(arity: 2, expectedArgTypes: [.number, .number], returnType: .number),
 
-        // Сравнения (2 аргумента, number или bool, возвращают bool)
+        // Comparisons
         "less": BuiltinSpec(arity: 2, expectedArgTypes: [.any, .any], returnType: .bool),
         "lesseq": BuiltinSpec(arity: 2, expectedArgTypes: [.any, .any], returnType: .bool),
         "greater": BuiltinSpec(arity: 2, expectedArgTypes: [.any, .any], returnType: .bool),
         "greatereq": BuiltinSpec(arity: 2, expectedArgTypes: [.any, .any], returnType: .bool),
-        "equal": BuiltinSpec(arity: 2, expectedArgTypes: nil, returnType: .bool),    // любые сравнимые типы
-        "nonequal": BuiltinSpec(arity: 2, expectedArgTypes: nil, returnType: .bool), // любые сравнимые типы
+        "equal": BuiltinSpec(arity: 2, expectedArgTypes: nil, returnType: .bool),
+        "nonequal": BuiltinSpec(arity: 2, expectedArgTypes: nil, returnType: .bool),
 
-        // Операции со списками
+        // List operations
         "head": BuiltinSpec(arity: 1, expectedArgTypes: [.list], returnType: .any),
         "tail": BuiltinSpec(arity: 1, expectedArgTypes: [.list], returnType: .list),
         "cons": BuiltinSpec(arity: 2, expectedArgTypes: [.any, .list], returnType: .list),
 
-        // Логические операторы
+        // Logical operators
         "and": BuiltinSpec(arity: 2, expectedArgTypes: [.bool, .bool], returnType: .bool),
         "or": BuiltinSpec(arity: 2, expectedArgTypes: [.bool, .bool], returnType: .bool),
         "xor": BuiltinSpec(arity: 2, expectedArgTypes: [.bool, .bool], returnType: .bool),
         "not": BuiltinSpec(arity: 1, expectedArgTypes: [.bool], returnType: .bool),
 
-        // Предикаты
+        // Predicates
         "isint": BuiltinSpec(arity: 1, expectedArgTypes: nil, returnType: .bool),
         "isreal": BuiltinSpec(arity: 1, expectedArgTypes: nil, returnType: .bool),
         "isbool": BuiltinSpec(arity: 1, expectedArgTypes: nil, returnType: .bool),
@@ -202,9 +198,9 @@ public final class SemanticAnalyzer {
         "eval": BuiltinSpec(arity: 1, expectedArgTypes: nil, returnType: .any)
     ]
 
-    // MARK: - Type inference
+    // MARK: - Type Inference
     private func inferType(of element: Element, in scope: SymbolTable? = nil, depth: Int = 0) -> TypeKind {
-        if depth > 10 { return .any } // защита от бесконечной рекурсии
+        if depth > 10 { return .any } // prevent infinite recursion
 
         switch element {
         case .integer, .real:
@@ -217,26 +213,22 @@ public final class SemanticAnalyzer {
             if let s = scope, let t = s.lookupVariableType(name) { return t }
             return .any
         case .list(let elems):
-            // Если это цитата, возвращаем тип списка
             if let first = elems.first, case .atom("quote") = first {
                 return .list
             }
             
-            guard let first = elems.first else { return .list } // пустой список
-            
+            guard let first = elems.first else { return .list }
+
             if case .atom(let head) = first {
-                // Специальные формы
                 switch head {
                 case "quote":
                     return .list
                 case "setq", "func", "lambda", "prog", "cond", "while", "return", "break":
-                    return .any // тип зависит от реализации
+                    return .any
                 default:
-                    // Встроенные функции
                     if let spec = builtinSpecs[head] {
                         return spec.returnType ?? .any
                     }
-                    // Пользовательские функции
                     if let _ = scope?.lookupFunction(head) {
                         return .any
                     }
@@ -246,11 +238,10 @@ public final class SemanticAnalyzer {
         }
     }
 
-    // MARK: - Builtin call checks
+    // MARK: - Builtin Call Checks
     private func checkBuiltinCall(_ name: String, args: [Element], in scope: SymbolTable, line: Int) {
         guard let spec = builtinSpecs[name] else { return }
 
-        // Проверка арности
         if args.count != spec.arity {
             recordError("\(name) expects \(spec.arity) argument(s), got \(args.count)", line)
         }
@@ -276,21 +267,17 @@ public final class SemanticAnalyzer {
         
         if name == "eval", args.count == 1 {
             let arg = args[0]
-            // Если это цитата со списком — анализируем содержимое внутри
             if case .list(let inner) = arg, let first = inner.first, case .atom("quote") = first {
                 if inner.count == 2, case .list(let quotedExpr) = inner[1] {
-                    // Выполним анализ внутреннего выражения
                     analyzeNode(.list(quotedExpr), in: scope, line: line, inProg: false, inWhile: false, inFunc: false)
                 }
             }
             return
         }
 
-        // Проверка типов аргументов
         if let expectedTypes = spec.expectedArgTypes {
             for (idx, expectedType) in expectedTypes.enumerated() where idx < args.count {
                 let actualType = inferType(of: args[idx], in: scope)
-                
                 if expectedType != .any && actualType != expectedType && actualType != .any {
                     recordError("\(name) expects \(expectedType) for argument \(idx+1), got \(actualType)", line)
                 }
@@ -299,7 +286,7 @@ public final class SemanticAnalyzer {
     }
 
     // -----------------------------
-    // Handlers for constructs (исправлено)
+    // Handlers for Constructs
     // -----------------------------
     private func checkSetq(_ elements: [Element], scope: SymbolTable, line: Int, inProg: Bool, inWhile: Bool, inFunc: Bool) {
         guard elements.count == 3 else {
@@ -321,7 +308,6 @@ public final class SemanticAnalyzer {
         if elements.count != 2 {
             recordError("quote requires exactly 1 argument, got \(elements.count - 1)", line)
         }
-        // Аргумент не анализируем - quote предотвращает вычисление
     }
 
     private func checkFunc(_ elements: [Element], scope: SymbolTable, line: Int) {
@@ -344,10 +330,8 @@ public final class SemanticAnalyzer {
             return nil
         }
         
-        // Регистрируем функцию в текущей области видимости
         scope.defineFunction(fname, params: params, body: elements[3])
 
-        // Анализируем тело функции в новой области видимости
         let fnScope = SymbolTable(parent: scope)
         for p in params {
             fnScope.defineVariable(p, type: .any)
@@ -395,7 +379,6 @@ public final class SemanticAnalyzer {
             }
         }
 
-        // Анализируем тело prog
         for expr in elements.dropFirst(2) {
             analyzeNode(expr, in: localScope, line: line, inProg: true, inWhile: false, inFunc: false)
         }
@@ -407,17 +390,14 @@ public final class SemanticAnalyzer {
             return
         }
         
-        // Условие
         analyzeNode(elements[1], in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
         let condType = inferType(of: elements[1], in: scope)
         if condType != .bool && condType != .any {
             recordError("cond expects a boolean condition, got \(condType)", line)
         }
         
-        // Then-ветвь
         analyzeNode(elements[2], in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
         
-        // Else-ветвь (если есть)
         if elements.count == 4 {
             analyzeNode(elements[3], in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
         }
@@ -429,14 +409,12 @@ public final class SemanticAnalyzer {
             return
         }
         
-        // Условие
         analyzeNode(elements[1], in: scope, line: line, inProg: inProg, inWhile: false, inFunc: inFunc)
         let condType = inferType(of: elements[1], in: scope)
         if condType != .bool && condType != .any {
             recordError("while expects a boolean condition, got \(condType)", line)
         }
 
-        // Тело цикла
         for bodyExpr in elements.dropFirst(2) {
             analyzeNode(bodyExpr, in: scope, line: line, inProg: inProg, inWhile: true, inFunc: inFunc)
         }
@@ -452,42 +430,35 @@ public final class SemanticAnalyzer {
             recordError("return expects 0 or 1 arguments, got \(elements.count - 1)", line)
         }
         
-        // Анализируем возвращаемое значение (если есть)
         if elements.count == 2 {
-            analyzeNode(elements[1], in: scope, line: line, inProg: inProg, inWhile: false, inFunc: inFunc)
+            analyzeNode(elements[1], in: scope, line: line, inProg: false, inWhile: false, inFunc: inFunc)
         }
     }
 
-    // Вызов функции/лямбды
     private func checkFunctionCall(_ elements: [Element], scope: SymbolTable, line: Int, inProg: Bool, inWhile: Bool, inFunc: Bool) {
         guard case .atom(let name) = elements[0] else {
-            // Если первый элемент не атом, это может быть выражение, возвращающее функцию
             for elem in elements {
                 analyzeNode(elem, in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
             }
             return
         }
 
-        // Проверяем наличие определения
         if !Self.isBuiltinSymbol(name)
             && scope.lookupFunction(name) == nil
             && !scope.isVariableDefined(name) {
             recordError("Call to undefined function '\(name)'", line)
         }
 
-        // Анализируем аргументы
         let args = Array(elements.dropFirst())
         for arg in args {
             analyzeNode(arg, in: scope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
         }
 
-        // Проверяем встроенные функции
         if Self.isBuiltinSymbol(name) {
             checkBuiltinCall(name, args: args, in: scope, line: line)
             return
         }
 
-        // Проверяем пользовательские функции
         if let (params, _) = scope.lookupFunction(name) {
             if params.count != args.count {
                 recordError("\(name) expects \(params.count) argument(s), got \(args.count)", line)
@@ -495,7 +466,6 @@ public final class SemanticAnalyzer {
         }
     }
 
-    // ((lambda (...) body) arg1 arg2)
     private func handleAnonymousLambdaCall(innerLambda: [Element], callArgs: [Element], parentScope: SymbolTable, line: Int, inProg: Bool, inWhile: Bool, inFunc: Bool) {
         guard innerLambda.count == 3 else {
             recordError("lambda must have exactly 2 arguments (parameters and body)", line)
@@ -517,12 +487,10 @@ public final class SemanticAnalyzer {
             recordError("anonymous lambda expects \(params.count) argument(s), got \(callArgs.count)", line)
         }
 
-        // Анализируем аргументы вызова
         for arg in callArgs {
             analyzeNode(arg, in: parentScope, line: line, inProg: inProg, inWhile: inWhile, inFunc: inFunc)
         }
 
-        // Анализируем тело лямбды в новой области видимости
         let lambdaScope = SymbolTable(parent: parentScope)
         for p in params {
             lambdaScope.defineVariable(p, type: .any)
@@ -540,26 +508,13 @@ public final class SemanticAnalyzer {
     }
 
     private static let builtinSymbols: Set<String> = [
-        // Специальные формы
         "quote", "setq", "func", "lambda", "prog", "cond",
         "while", "return", "break",
-        
-        // Арифметические функции
         "plus", "minus", "times", "divide",
-        
-        // Операции со списками
         "head", "tail", "cons",
-        
-        // Сравнения
         "equal", "nonequal", "less", "lesseq", "greater", "greatereq",
-        
-        // Предикаты
         "isint", "isreal", "isbool", "isnull", "isatom", "islist",
-        
-        // Логические операторы
         "and", "or", "xor", "not",
-        
-        // Evaluator
         "eval"
     ]
 }

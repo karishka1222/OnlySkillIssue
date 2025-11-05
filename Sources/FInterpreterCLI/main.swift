@@ -36,7 +36,7 @@ func runFileTests(optimizeAST: Bool) {
             
             var program = parser.parseProgram()
             
-            // ⚠️ Синтаксические ошибки
+            // Syntax errors
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
@@ -45,7 +45,7 @@ func runFileTests(optimizeAST: Bool) {
                 print("")
             }
             
-            // ❌ Если AST пуст — пропускаем семантику
+            // If AST is empty — skip semantic analysis
             guard !program.isEmpty else {
                 print("❌ No valid AST nodes parsed, skipping semantic analysis.\n")
                 continue
@@ -56,7 +56,7 @@ func runFileTests(optimizeAST: Bool) {
                 print(node.element.prettyDescription())
             }
             
-            // ✅ Оптимизация AST
+            // AST optimization
             if optimizeAST {
                 program = ASTOptimizer.optimizeProgram(program)
                 print("\n✅ AST after optimization:")
@@ -107,7 +107,7 @@ func runConsoleTests(optimizeAST: Bool) {
             
             var program = parser.parseProgram()
             
-            // ⚠️ Синтаксические ошибки
+            // Syntax errors
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
@@ -160,7 +160,6 @@ func runConsoleTests(optimizeAST: Bool) {
 }
 
 
-// MARK: - Entry point
 print("Choose mode: 'txt' for file tests or 'console' for interactive mode.")
 if let choice = readLine()?.lowercased() {
     print("Enable AST optimization? (yes/no)")
