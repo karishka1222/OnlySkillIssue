@@ -51,20 +51,20 @@ func runFileTests(optimizeAST: Bool) {
                 continue
             }
             
-            print("🔹 AST before optimization:")
+//            print("🔹 AST before optimization:")
             for node in program {
-                print(node.element.prettyDescription())
+//                print(node.element.prettyDescription())
             }
             
             // AST optimization
             if optimizeAST {
                 program = ASTOptimizer.optimizeProgram(program)
-                print("\n✅ AST after optimization:")
+//                print("\n✅ AST after optimization:")
                 for node in program {
-                    print(node.element.prettyDescription())
+//                    print(node.element.prettyDescription())
                 }
             } else {
-                print("\n⚙️ Optimization disabled.")
+//                print("\n⚙️ Optimization disabled.")
             }
             
             print("\n🔍 Running semantic analysis...\n")
@@ -73,6 +73,13 @@ func runFileTests(optimizeAST: Bool) {
             
             if errors.isEmpty {
                 print("✅ No semantic errors found.\n")
+                print("🚀 Running interpreter...\n")
+                let interpreter = Interpreter()
+                print("Result:")
+                let results = try interpreter.interpret(nodes: program)
+                for r in results {
+                    print(r)
+                }
             } else {
                 print("⚠️ Found \(errors.count) semantic errors:")
                 for err in errors {
@@ -140,6 +147,14 @@ func runConsoleTests(optimizeAST: Bool) {
                 
                 if errors.isEmpty {
                     print("✅ No semantic errors found.\n")
+                    print("🚀 Running interpreter...\n")
+                    let interpreter = Interpreter()
+                    do {
+                        let value = try interpreter.interpret(nodes: program)
+                        print("Result: \(value)\n")
+                    } catch {
+                        print("❌ Runtime error: \(error)\n")
+                    }
                 } else {
                     print("⚠️ Found \(errors.count) semantic errors:")
                     for err in errors {
