@@ -35,21 +35,23 @@ func runFileTests(optimizeAST: Bool) {
             let parser = Parser(tokens: tokens, lenient: false)
             
             var program = parser.parseProgram()
+            var hasErrors = false
             
-            // Syntax errors
+            // Syntax errors - display, but continue
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
                     print("  \(err)")
                 }
-                print("")
+                hasErrors = true
             }
             
-            // If AST is empty — skip semantic analysis
+            // If AST is empty, skip the remaining steps
             guard !program.isEmpty else {
-                print("❌ No valid AST nodes parsed, skipping semantic analysis.\n")
+                print("❌ No valid AST nodes parsed.\n")
                 continue
             }
+            
             
 //            print("🔹 AST before optimization:")
             for node in program {
@@ -67,12 +69,23 @@ func runFileTests(optimizeAST: Bool) {
 //                print("\n⚙️ Optimization disabled.")
             }
             
+            
             print("\n🔍 Running semantic analysis...\n")
             let analyzer = SemanticAnalyzer(ast: program)
-            let errors = analyzer.analyze()
+            let semanticErrors = analyzer.analyze()
             
-            if errors.isEmpty {
+            if semanticErrors.isEmpty {
                 print("✅ No semantic errors found.\n")
+            } else {
+                print("⚠️ Found \(semanticErrors.count) semantic errors:")
+                for err in semanticErrors {
+                    print("  \(err)")
+                }
+                hasErrors = true
+            }
+            
+            // Run the interpreter only if there are no errors at all
+            if !hasErrors {
                 print("🚀 Running interpreter...\n")
                 let interpreter = Interpreter()
                 print("Result:")
@@ -81,12 +94,10 @@ func runFileTests(optimizeAST: Bool) {
                     print(r)
                 }
             } else {
-                print("⚠️ Found \(errors.count) semantic errors:")
-                for err in errors {
-                    print("  \(err)")
-                }
                 print("")
+                print("❌ Skipping interpreter due to errors\n")
             }
+            print("")
         }
         
         print("=== End of File Tests ===")
@@ -94,7 +105,6 @@ func runFileTests(optimizeAST: Bool) {
         print("❌ Could not read tests.txt: \(error)")
     }
 }
-
 
 // MARK: - Console Mode
 func runConsoleTests(optimizeAST: Bool) {
@@ -108,63 +118,87 @@ func runConsoleTests(optimizeAST: Bool) {
         if line == ":quit" {
             break
         } else if line == ":run" {
+            guard !buffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                print("❌ No code to execute.\n")
+                buffer = ""
+                continue
+            }
+            
             let lexer = Lexer(input: buffer + "\n")
             let tokens = lexer.tokenize()
             let parser = Parser(tokens: tokens, lenient: false)
             
             var program = parser.parseProgram()
+            var hasErrors = false
             
-            // Syntax errors
+            // Syntax errors - display, but continue
             if !parser.errors.isEmpty {
                 print("⚠️ Found \(parser.errors.count) syntax errors:")
                 for err in parser.errors {
                     print("  \(err)")
                 }
-                print("")
+                hasErrors = true
             }
             
-            if program.isEmpty {
+            // If AST is empty, skip the remaining steps
+            guard !program.isEmpty else {
                 print("❌ No valid AST nodes parsed.\n")
-            } else {
-                print("🔹 AST before optimization:")
+                buffer = ""
+                continue
+            }
+            
+            
+//            print("🔹 AST before optimization:")
+            for node in program {
+//                print(node.element.prettyDescription())
+            }
+            
+            // AST optimization
+            if optimizeAST {
+                program = ASTOptimizer.optimizeProgram(program)
+//                print("\n✅ AST after optimization:")
                 for node in program {
-                    print(node.element.prettyDescription())
+//                    print(node.element.prettyDescription())
                 }
-                
-                if optimizeAST {
-                    program = ASTOptimizer.optimizeProgram(program)
-                    print("\n✅ AST after optimization:")
-                    for node in program {
-                        print(node.element.prettyDescription())
-                    }
-                } else {
-                    print("\n⚙️ Optimization disabled.")
+            } else {
+//                print("\n⚙️ Optimization disabled.")
+            }
+            
+            
+            print("\n🔍 Running semantic analysis...\n")
+            let analyzer = SemanticAnalyzer(ast: program)
+            let semanticErrors = analyzer.analyze()
+            
+            if semanticErrors.isEmpty {
+                print("✅ No semantic errors found.\n")
+            } else {
+                print("⚠️ Found \(semanticErrors.count) semantic errors:")
+                for err in semanticErrors {
+                    print("  \(err)")
                 }
-                
-                print("\n🔍 Running semantic analysis...\n")
-                let analyzer = SemanticAnalyzer(ast: program)
-                let errors = analyzer.analyze()
-                
-                if errors.isEmpty {
-                    print("✅ No semantic errors found.\n")
-                    print("🚀 Running interpreter...\n")
-                    let interpreter = Interpreter()
-                    do {
-                        let value = try interpreter.interpret(nodes: program)
-                        print("Result: \(value)\n")
-                    } catch {
-                        print("❌ Runtime error: \(error)\n")
+                hasErrors = true
+            }
+            
+            // Run the interpreter only if there are no errors at all
+            if !hasErrors {
+                print("🚀 Running interpreter...\n")
+                let interpreter = Interpreter()
+                do {
+                    let results = try interpreter.interpret(nodes: program)
+                    print("Result:")
+                    for r in results {
+                        print(r)
                     }
-                } else {
-                    print("⚠️ Found \(errors.count) semantic errors:")
-                    for err in errors {
-                        print("  \(err)")
-                    }
-                    print("")
+                } catch {
+                    print("❌ Runtime error: \(error)\n")
                 }
+            } else {
+                print("")
+                print("❌ Skipping interpreter due to errors\n")
             }
             
             buffer = ""
+            print("")
         } else {
             buffer.append(line)
             buffer.append("\n")
@@ -174,7 +208,7 @@ func runConsoleTests(optimizeAST: Bool) {
     print("=== End of Console Mode ===")
 }
 
-
+// MARK: - Main Execution
 print("Choose mode: 'txt' for file tests or 'console' for interactive mode.")
 if let choice = readLine()?.lowercased() {
     print("Enable AST optimization? (yes/no)")
