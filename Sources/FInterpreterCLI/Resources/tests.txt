@@ -226,7 +226,7 @@ null
 (func incCounter ()
     (setq counter (plus counter 1))
 )
-(incCounter)
+(setq z (incCounter))
 counter
 
 # 29. High-order functions: function argument

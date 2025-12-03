@@ -32,7 +32,7 @@ func runFileTests(optimizeAST: Bool) {
             
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
-//            print("Tokens: \(tokens)\n")
+            print("Tokens: \(tokens)\n")
             let parser = Parser(tokens: tokens, lenient: false)
             
             var program = parser.parseProgram()
