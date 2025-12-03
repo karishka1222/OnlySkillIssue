@@ -220,3 +220,54 @@ null
 (setq y (plus 2 3))
 (plus y 1)
 (setq z 42)
+
+# 28. AST Optimization — Remove Unused Variables with function call
+(setq counter 0)
+(func incCounter ()
+    (setq counter (plus counter 1))
+)
+(incCounter)
+counter
+
+# 29. High-order functions: function argument
+(func square (x)
+    (plus x x)
+)
+(func applyTwice (f x)
+    (prog ()
+        (return (f (f x)))
+    )
+)
+(applyTwice square 2)
+
+# 30. High-order functions: function as argument
+(func apply (f x)
+    (f x)
+)
+(apply (lambda (y) (plus y 10)) 5)
+
+# 31. High-order functions: return function
+(func makeAdder (a)
+    (lambda (b) (plus a b))
+)
+(setq add5 (makeAdder 5))
+(add5 7)
+
+# 32. High-order functions: lambda in lambda
+((lambda (x)
+      ((lambda (y)
+         (plus x y)
+      )
+    3))
+4)
+
+# 33. High-order functions: function accepts a function and returns a new one
+(func compose (f g)
+    (lambda (x)
+        (f (g x))
+    )
+)
+(func inc (x) (plus x 1))
+(func double (x) (plus x x))
+(setq incThenDouble (compose double inc))
+(incThenDouble 5)

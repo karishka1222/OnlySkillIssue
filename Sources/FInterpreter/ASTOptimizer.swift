@@ -123,7 +123,6 @@ public final class ASTOptimizer {
     }
 
     // MARK: - Remove Unused Variables
-    /// Removes unused variables (only simple `setq`)
     private static func removeUnusedVariables(_ nodes: [Node]) -> [Node] {
         var declared: Set<String> = []
         var used: Set<String> = []
@@ -132,41 +131,47 @@ public final class ASTOptimizer {
             switch element {
             case .atom(let s):
                 used.insert(s)
+
             case .list(let elems):
                 if elems.count >= 3,
                    case .atom("setq") = elems[0],
                    case .atom(let varName) = elems[1] {
-                    // Register variable declaration
+
                     declared.insert(varName)
-                    // Recursively collect used identifiers in the value
-                    collect(element: elems[2])
+                    collect(element: elems[2]) // collect inside RHS
+
                 } else {
-                    // Recurse through child elements
                     elems.forEach { collect(element: $0) }
                 }
-            default:
-                break
+
+            default: break
             }
         }
 
+        // First pass: find declared + used
         for n in nodes { collect(element: n.element) }
 
-        // Variables declared but not used elsewhere
         let unused = declared.subtracting(used)
         guard !unused.isEmpty else { return nodes }
 
-        // Filter nodes: remove top-level setq for unused variables
-        let filtered = nodes.filter {
-            if case .list(let elems) = $0.element,
-               elems.count >= 3,
-               case .atom("setq") = elems[0],
-               case .atom(let varName) = elems[1],
-               unused.contains(varName) {
-                return false
+        // Second pass: replace unused setq with its function call (value)
+        let optimized = nodes.compactMap { node -> Node? in
+            guard case .list(let elems) = node.element,
+                  elems.count >= 3,
+                  case .atom("setq") = elems[0],
+                  case .atom(let varName) = elems[1]
+            else {
+                return node // keep unchanged
             }
-            return true
+
+            if unused.contains(varName) {
+                let value = elems[2]
+                return Node(element: value, line: node.line)
+            }
+
+            return node
         }
 
-        return filtered
+        return optimized
     }
 }

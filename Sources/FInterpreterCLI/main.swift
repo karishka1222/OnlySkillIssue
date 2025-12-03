@@ -32,6 +32,7 @@ func runFileTests(optimizeAST: Bool) {
             
             let lexer = Lexer(input: block + "\n")
             let tokens = lexer.tokenize()
+//            print("Tokens: \(tokens)\n")
             let parser = Parser(tokens: tokens, lenient: false)
             
             var program = parser.parseProgram()
@@ -53,20 +54,20 @@ func runFileTests(optimizeAST: Bool) {
             }
             
             
-//            print("🔹 AST before optimization:")
+            print("🔹 AST before optimization:")
             for node in program {
-//                print(node.element.prettyDescription())
+                print(node.element.prettyDescription())
             }
             
             // AST optimization
             if optimizeAST {
                 program = ASTOptimizer.optimizeProgram(program)
-//                print("\n✅ AST after optimization:")
+                print("\n✅ AST after optimization:")
                 for node in program {
-//                    print(node.element.prettyDescription())
+                    print(node.element.prettyDescription())
                 }
             } else {
-//                print("\n⚙️ Optimization disabled.")
+                print("\n⚙️ Optimization disabled.")
             }
             
             
@@ -126,6 +127,7 @@ func runConsoleTests(optimizeAST: Bool) {
             
             let lexer = Lexer(input: buffer + "\n")
             let tokens = lexer.tokenize()
+            print("Tokens: \(tokens)\n")
             let parser = Parser(tokens: tokens, lenient: false)
             
             var program = parser.parseProgram()
@@ -148,20 +150,20 @@ func runConsoleTests(optimizeAST: Bool) {
             }
             
             
-//            print("🔹 AST before optimization:")
+            print("🔹 AST before optimization:")
             for node in program {
-//                print(node.element.prettyDescription())
+                print(node.element.prettyDescription())
             }
             
             // AST optimization
             if optimizeAST {
                 program = ASTOptimizer.optimizeProgram(program)
-//                print("\n✅ AST after optimization:")
+                print("\n✅ AST after optimization:")
                 for node in program {
-//                    print(node.element.prettyDescription())
+                    print(node.element.prettyDescription())
                 }
             } else {
-//                print("\n⚙️ Optimization disabled.")
+                print("\n⚙️ Optimization disabled.")
             }
             
             
